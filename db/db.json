@@ -1,7 +1,7 @@
 [
-    {
-        "id": 1,
-        "title": "Test Title",
-        "text": "Test text"
-    }
+	{
+		"title": "Test",
+		"text": "This note is just some text to make sure it gets saved",
+		"id": "d811ec84-2b25-41b1-8cc4-8640e78e892c"
+	}
 ]
