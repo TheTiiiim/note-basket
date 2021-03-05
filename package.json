@@ -26,5 +26,10 @@
 	"bugs": {
 		"url": "https://github.com/TheTiiiim/note-basket/issues"
 	},
-	"homepage": "https://github.com/TheTiiiim/note-basket#readme"
+	"homepage": "https://github.com/TheTiiiim/note-basket#readme",
+	"nodemonConfig": {
+		"ignore": [
+			"db/*"
+		]
+	}
 }
