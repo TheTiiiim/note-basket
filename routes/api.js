@@ -6,7 +6,6 @@ const fsPromise = require("fs/promises");
 const dbPath = path.join(".", "db");
 
 router.route("/notes")
-	.all((req, res, next) => { next(); })
 	.get((req, res) => {
 		res.sendFile("db.json", { root: dbPath });
 	})
@@ -31,6 +30,26 @@ router.route("/notes")
 					path.join(dbPath, "db.json"),
 					JSON.stringify(data, null, "	"))
 			}).catch(console.error)
-	})
+	});
+
+router.delete("/notes/:id", (req, res) => {
+	// send status
+	res.sendStatus(202);
+	// update db
+	fsPromise.readFile(path.join(dbPath, "db.json"), "utf8")
+		.then((data) => {
+			// parse data
+			data = JSON.parse(data);
+			// make sure data is an array
+			if (!Array.isArray(data)) data = [];
+			// filter data for notes matching id
+			data = data.filter((note) => note.id != req.params.id)
+
+			// save note
+			return fsPromise.writeFile(
+				path.join(dbPath, "db.json"),
+				JSON.stringify(data, null, "	"));
+		}).catch(console.error);
+});
 
 module.exports = router;
