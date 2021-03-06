@@ -1,55 +1,42 @@
 const router = require("express").Router();
-const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const path = require("path");
 const fsPromise = require("fs/promises");
 
-const dbPath = path.join(".", "db");
+const db = require("../lib/db");
+db.init();
 
 router.route("/notes")
-	.get((req, res) => {
-		res.sendFile("db.json", { root: dbPath });
+	.get((req, res, next) => {
+		if (req.query.id) res.send(db.getNotebyID(req.query.id));
+		else next();
+	}, (req, res, next) => {
+		if (req.query.title) res.send(db.getNotesbyTitle(req.query.title));
+		else next();
+	}, (req, res) => {
+		res.send(db.getNotes());
 	})
 	.post((req, res) => {
-		// make sure note has title and text properties
-		const note = { title, text } = req.body;
-		// create an id
-		note.id = uuidv4();
+		// create note
+		const { title, text } = req.query;
+		const note = {
+			title: title,
+			text: text,
+			id: uuidv4()
+		}
+		// add note
+		db.addNote(note);
 		// send status
-		res.sendStatus(202);
-		// update db
-		fsPromise.readFile(path.join(dbPath, "db.json"), "utf8")
-			.then((data) => {
-				// parse data
-				data = JSON.parse(data);
-				// make sure data is an array
-				if (!Array.isArray(data)) data = [];
-				// add new note
-				data.push(note);
-				// save note
-				return fsPromise.writeFile(
-					path.join(dbPath, "db.json"),
-					JSON.stringify(data, null, "	"))
-			}).catch(console.error)
+		res.status(200).send(note);
+	})
+	.delete((req, res) => {
+		const id = req.query.id;
+		if (id) {
+			const deleted = db.deleteNotebyID(id);
+			if (deleted) res.sendStatus(200);
+			else res.sendStatus(404);
+		}
+		else res.status(403).send("expected id")
 	});
-
-router.delete("/notes/:id", (req, res) => {
-	// send status
-	res.sendStatus(202);
-	// update db
-	fsPromise.readFile(path.join(dbPath, "db.json"), "utf8")
-		.then((data) => {
-			// parse data
-			data = JSON.parse(data);
-			// make sure data is an array
-			if (!Array.isArray(data)) data = [];
-			// filter data for notes matching id
-			data = data.filter((note) => note.id != req.params.id)
-
-			// save note
-			return fsPromise.writeFile(
-				path.join(dbPath, "db.json"),
-				JSON.stringify(data, null, "	"));
-		}).catch(console.error);
-});
 
 module.exports = router;
