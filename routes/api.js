@@ -18,7 +18,7 @@ router.route("/notes")
 	})
 	.post((req, res) => {
 		// create note
-		const { title, text } = req.query;
+		const { title, text } = req.body;
 		const note = {
 			title: title,
 			text: text,
@@ -37,6 +37,30 @@ router.route("/notes")
 			else res.sendStatus(404);
 		}
 		else res.status(403).send("expected id")
+	});
+router.route("/notes/:id")
+	.get((req, res) => {
+		res.send(db.getNotebyID(req.params.id));
+	})
+	.put((req, res) => {
+		// create note
+		const { title, text } = req.body;
+		const note = {
+			title: title,
+			text: text,
+			id: req.params.id
+		}
+		// add note
+		db.deleteNotebyID(note.id);
+		db.addNote(note);
+		// send status
+		res.status(200).send(note);
+	})
+	.delete((req, res) => {
+		const id = req.params.id;
+		const deleted = db.deleteNotebyID(id);
+		if (deleted) res.sendStatus(200);
+		else res.sendStatus(404);
 	});
 
 module.exports = router;
